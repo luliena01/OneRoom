@@ -75,14 +75,13 @@
         }
         json.user_name = $('#name').val();
         json.role = $('#role option:selected').val();
-        alert(json.role)
+
         if(json.role == 2) {
             json.room = $('#room option:selected').val();
         }
         json.phone = $('#phone').val();
 
         json = JSON.stringify(json);
-        alert(json);
 
         $.ajax({
             dataType: "json",
