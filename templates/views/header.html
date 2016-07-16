@@ -1,0 +1,126 @@
+ <!DOCTYPE html>
+ <html lang="en">
+ <head>
+    <meta charset="UTF-8">
+    <title>MAIN</title>
+
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+	<!-- Bootstrap Core Css -->
+	<!--<link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">-->
+	<!--&lt;!&ndash; Custom Css &ndash;&gt;-->
+	<!--<link href="{{ url_for('static', filename='css/shop-homepage.css') }}" rel="stylesheet">-->
+    <!--<link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">-->
+
+	<!-- jQuery -->
+    <script src="{{ url_for('static', filename='js/jquery-2.2.1.min.js') }}"></script>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="{{ url_for('static', filename='bower_components/bootstrap/dist/css/bootstrap.min.css') }}" rel="stylesheet">
+    <!-- MetisMenu CSS -->
+    <link href="{{ url_for('static', filename='bower_components/metisMenu/dist/metisMenu.min.css') }}" rel="stylesheet">
+
+    <!-- Timeline CSS -->
+    <link href="{{ url_for('static', filename='dist/css/timeline.css') }}" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="{{ url_for('static', filename='dist/css/sb-admin-2.css') }}" rel="stylesheet">
+
+    <!-- Morris Charts CSS -->
+    <link href="{{ url_for('static', filename='bower_components/morrisjs/morris.css') }}" rel="stylesheet">
+
+    <!-- Custom Fonts -->
+    <link href="{{ url_for('static', filename='bower_components/font-awesome/css/font-awesome.min.css') }}" rel="stylesheet" type="text/css">
+</head>
+
+<header>
+	<!-- Navigation -->
+    <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+        <div class="container">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="views/main.html">Start Bootstrap</a>
+            </div>
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav">
+                    <li>
+                        <a href="/wp/notice/list">Notice</a>
+                    </li>
+                    <li>
+                        <a href="/wp/shop/list">Rental Rooms</a>
+                    </li>
+                    <li>
+                        <a href="#">Contact</a>
+                    </li>
+                    {% if session.logged_in %}
+                    <li>
+                        <!--a href="/logout/"><span class="glyphicon glyphicon-log-in"></span> Logout</a-->
+                        <a href="/auth/logout"><span class="glyphicon glyphicon-log-in"></span> Logout </a>
+                    </li>
+                    {% else %}
+                    <li>
+						<!-- put right side -->
+						<!--div style="margin-right: 10px; margin-left: 15px; margin-top: 5px; margin-bottom: 5px;"-->
+						<!--a role="presentation" data-toggle="modal" data-target="#exampleModal" href="#"><span class="glyphicon glyphicon-log-in"></span> Login   </a-->
+						<!--a href="/login/"><span class="glyphicon glyphicon-log-in"></span> Login</a-->
+                        <a href="/wp/auth/login"><span class="glyphicon glyphicon-log-in"></span> Login </a>
+						<!--/div-->
+                    </li>
+					<li>
+						<!-- put right side -->
+						<!--div style="margin-right: 10px; margin-left: 15px; margin-top: 5px; margin-bottom: 5px;"-->
+						<!--a role="presentation" data-toggle="modal" data-target="#exampleModal" href="#"><span class="glyphicon glyphicon-log-in"></span> Login   </a-->
+						<!--a href="/register/"><span class="glyphicon glyphicon-log-in"></span> Sign up</a-->
+                        <a href="/wp/auth/register"><span class="glyphicon glyphicon-log-in"></span> Register </a>
+						<!--/div-->
+                    </li>
+                    {% endif %}
+					{% if session.logged_in %}
+					<li>
+						<a href="/wp/auth/user/list"><span class="glyphicon glyphicon-log-in"></span> User list </a>
+					</li>
+					{% endif %}
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+		</div>
+		<!-- /.container -->
+    </nav>
+</header>
+
+<body>
+	<!--<script src="//code.jquery.com/jquery-1.11.1.min.js"></script>-->
+	<!--<script type="text/javascript" src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>-->
+
+    <div>&nbsp;</div>
+    <div>&nbsp;</div>
+
+	<div class="container" style="min-height:100% width:80%">
+
+		{% with messages = get_flashed_messages() %}
+			{% if messages %}
+				{% for message in messages %}
+					<div class="alert alert-warning alert-dismissible" role="alert">
+						<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true"></span></button>
+						{{ message }}
+					</div>
+				{% endfor %}
+			{% endif %}
+		{% endwith %}
+
+		{% block body %}
+
+		{% endblock %}
+	</div>
+</body>
+
+</html>

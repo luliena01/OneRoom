@@ -1,0 +1,215 @@
+{% extends "views/header.html" %}
+
+{% block body %}
+
+<head>
+	<script type="text/javascript">
+		var current;
+
+		$(function () {
+			init(1);
+		});
+
+		function init(page) {
+			$.ajax({
+				dataType: "json",
+				url: "/notice/list/"+ page,
+				method: "GET",
+				success: function (json) {
+					if(json.status == true) {
+						json = json.data;
+
+						$('#list').children().remove();
+						var notices = json.notice;
+						for (var i = 0; i < notices.length; i++) {
+							var content = '';
+							content += '<tr id="row' + notices[i].index + '">';
+							content += '    <td>' + notices[i].index + '</td>';
+							content += '    <td><a href="#" onclick="detail(this, ' + notices[i].index + ')">' + notices[i].title + '</a></td>';
+							content += '    <td>' + notices[i].author_id + '</td>';
+							content += '    <td>' + notices[i].register_date + '</td>';
+							content += '    <td>' + notices[i].counter + '</td>';
+							content += '</tr>';
+
+							$('#list').append(content);
+						}
+
+						$('.pagination').children().remove();
+						var pagination = '';
+
+						pagination = '<li id="previous" class="disabled"><a href="#" aria-label="Previous" onclick="previous()">';
+						pagination += '<span aria-hidden="true">&laquo;</span>';
+						pagination += '</a></li>';
+						$('.pagination').append(pagination);
+
+						var paging = json.paging;
+						var page = 1;
+						for (var totalSize = paging.total_count; totalSize > 0; totalSize -= paging.per_page, page++) {
+							$('.pagination').append(addPageNum(page, (paging.page == page) ? true : false));
+						}
+
+						pagination = '<li id="next" class="disabled"><a href="#" aria-label="Next" onclick="next()">';
+						pagination += '<span aria-hidden="true">&raquo;</span>';
+						pagination += '</a></li>';
+						$('.pagination').append(pagination);
+
+						if (paging.page != 1)
+							$('#previous').removeClass('disabled');
+						if (paging.page < page - 1)
+							$('#next').removeClass('disabled');
+					} else {
+						alert(json.error.message);
+					}
+				},
+				fail: function (json) {
+					alert(json.message);
+				}
+			});
+		}
+
+		function detail(id, index) {
+			$('tr.content').remove();
+
+			if (current && current == id) {
+				current = null;
+				return;
+			}
+
+			$.ajax({
+				dataType: "json",
+				url: "/notice/content/" + index,
+				method: "GET",
+				success: function (json) {
+					if(json.status == true) {
+						json = json.data;
+
+						var content = '';
+						content += '<tr id="' + index + '" class="content name="content">';
+						content += '    <td colspan=5>';
+						content += '        <div class="panel panel-default" style="padding: 5px;">';
+						content += json.content;
+						content += '        </div>';
+						content += '</td> </tr>';
+						$('#row' + index).after(content);
+
+						{% if session.admin %}
+							$('#' + index).find('td').append('<button type="button" class="btn btn-primary" btn-sm onclick="edit(this)"> Edit </button>');
+							$('#' + index).find('td').append('<button type="button" class="btn btn-primary" btn-sm onclick="removeContent(this)"> Delete </button>');
+						{% endif %}
+						$('#row' + index).find('td:eq(4)').text(json.counter);
+
+						current = id;
+					} else {
+						alert(json.error.message);
+					}
+				},
+				fail: function (json) {
+					alert(json.message);
+				}
+			});
+		}
+
+		function edit(id) {
+			var contentNum = $(id).parent().parent().attr('id');
+			window.location = "/wp/notice/content" + "?id=" + contentNum;
+		}
+
+		function removeContent(id) {
+			var index = $(id).parent().parent().attr('id');
+
+			if (!confirm("Are you sure to delete it?"))
+				return;
+
+			$.ajax({
+				dataType: "json",
+				url: "/notice/content/" + index,
+				method: "DELETE",
+				success: function (json) {
+					if (json.status == true) {
+						$('#row' + index).remove();
+						$('#' + index).remove();
+					} else {
+						alert(data.error.message);
+					}
+				},
+				fail: function (json) {
+					alert(json.error.message);
+				}
+			});
+		}
+
+		function getSelectedPage() {
+			return Number($('.pagination').find('li[name="pageNum"].active').text());
+		}
+
+		function previous() {
+			init(getSelectedPage() - 1);
+		}
+
+		function next() {
+			init(getSelectedPage() + 1);
+		}
+
+		function changePage(id) {
+			init($(id).text());
+		}
+
+		function addPageNum(num, isActive) {
+			if (isActive)
+				return '<li name="pageNum" class="active"><a href="#" onclick="changePage(this)">' + num + '</a></li>'
+			else
+				return '<li name="pageNum" ><a href="#" onclick="changePage(this)">' + num + '</a></li>'
+		}
+	</script>
+</head>
+
+<!--body xmlns="http://www.w3.org/1999/html"-->
+<div class="container">
+
+	<div class="page-header">
+		<h1>{{title}}</h1>
+	</div>
+
+	<div class="panel panel-default">
+		<!-- Table -->
+		<div class="panel-body">
+			<div class="table-responsive">
+				<table class="table table-hover">
+					<thead>
+					<tr>
+						<th>Index</th>
+						<th>Title</th>
+						<th>Writer</th>
+						<th>Register Date</th>
+						<th>Counter</th>
+					</tr>
+					</thead>
+					<tbody id="list">
+
+					</tbody>
+				</table>
+
+			</div>
+
+			<div style="display: table; width: 100%;">
+				<div style="display: table-cell; text-align: center;">
+				</div>
+			</div>
+
+			<nav>
+				<ul class="pagination">
+				</ul>
+			</nav>
+
+			{% if session.admin %}
+			<div>
+				<a href="/wp/notice/content">
+					<button type="button" class="btn btn-primary" style="float: right;"> Write</button>
+				</a>
+			</div>
+			{% endif %}
+		</div>
+	</div>
+	<!--/body-->
+
+	{% endblock %}

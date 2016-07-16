@@ -1,0 +1,125 @@
+{% extends "views/header.html" %}
+
+{% block body %}
+
+<script type="text/javascript" src="{{ url_for('static', filename='editor/js/HuskyEZCreator.js') }}" charset="utf-8"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='editor/photo_uploader/js/HuskyEZCreator.js') }}" charset="utf-8"></script>
+<!-- base -->
+<script type="text/javascript" src="{{ url_for('static', filename='js/base.js') }}"></script>
+
+<script type="text/javascript">
+var oEditors = [];
+var id;
+
+    $(function() {
+            nhn.husky.EZCreator.createInIFrame({
+            oAppRef: oEditors,
+            elPlaceHolder: "contentEditor",
+            sSkinURI: "{{ url_for('static', filename='editor/SmartEditor2Skin.html') }}",
+            fCreator: "createSEditor2"
+        });
+
+        id = getRequestParam('id')
+        if (typeof id !== "undefined") {
+            init(id);
+        }
+    });
+
+    function submitContents() {
+        oEditors.getById['contentEditor'].exec("UPDATE_CONTENTS_FIELD", []);
+
+        var sHTML = oEditors.getById["contentEditor"].getIR();
+
+        //$("#content").submit();
+        var json = {};
+        json.title = $('#title').val();
+        json.content = sHTML;
+
+        json = JSON.stringify(json)
+
+        var url = '/notice/content';
+        var method = 'POST';
+        if(typeof id != 'undefined') {
+            url += '/' + id;
+            method = "PUT";
+        }
+
+        $.ajax({
+            dataType: "json",
+            contentType: "application/json",
+            url: url,
+            type: method,
+            data: json,
+            success: function(json) {
+                if(json.status == true) {
+                    window.location = "/wp/notice/list";
+                } else {
+                    alert(json.error.message);
+                }
+//                $('#title').val(json.title);
+//                $('#contentEditor').text(json.content);
+//
+//                $('#content').attr('action', $('#content').attr('action') + "/" +  index);
+//                $('#content').attr('method', 'put');
+            },
+            fail: function(json) {
+                alert('error');
+            }
+        });
+    }
+
+    function init(index) {
+        $.ajax({
+            dataType: "json",
+            url: "/notice/content/" + index,
+            method: "GET",
+            success: function(json) {
+                if(json.status == true) {
+                    json = json.data;
+                    $('#title').val(json.title);
+                    $('#contentEditor').text(json.content);
+
+                    $('#content').attr('action', $('#content').attr('action') + "/" + index);
+                    $('#content').attr('method', 'put');
+                } else {
+                    alert(json.error.message);
+                }
+            },
+            fail: function(json) {
+                alert('error');
+            }
+        });
+    }
+
+    function cancel() {
+        window.location = "/wp/notice/list";
+    }
+</script>
+
+<!--<!body xmlns="http://www.w3.org/1999/html"&ndash;&gt;-->
+    <div class="container">
+
+        <div class="page-header">
+          <h1>{{title}}</h1>
+        </div>
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <input id="title" class="form-control" placeholder="Enter title" name="title">
+                </div>
+
+                <div class="panel-body">
+                    <div>
+                        <textarea class="form-control" id="contentEditor" name="contentEditor" rows="10" cols="100"></textarea>
+                    </div>
+                </div>
+
+                <button class="btn btn-outline btn-primary" onclick="javascript:submitContents()">Save</button>
+                <button type="cancel" class="btn btn-outline btn-default" onclick="javascript:cancle()">Cancel</button>
+            </div>
+
+        <!--</form>-->
+
+    </div>
+<!--/body-->
+
+{% endblock %}

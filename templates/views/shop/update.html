@@ -1,0 +1,75 @@
+{% extends TOPIC_DIC['Header']['html'] %}
+
+{% block body %}
+
+<script type="text/javascript" src="{{ url_for('static', filename='editor/js/HuskyEZCreator.js') }}" charset="utf-8"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='editor/photo_uploader/js/plugin/HuskyEZCreator.js') }}" charset="utf-8"></script>
+
+<script type="text/javascript">
+var oEditors = [];
+
+    $(function() {
+            nhn.husky.EZCreator.createInIFrame({
+            oAppRef: oEditors,
+            elPlaceHolder: "contentEditor",
+            sSkinURI: "{{ url_for('static', filename='editor/SmartEditor2Skin.html') }}",
+            fCreator: "createSEditor2"
+        });
+    })
+
+    function submitContents() {
+       oEditors.getById['contentEditor'].exec("UPDATE_CONTENTS_FIELD", []);
+
+        $("#content").submit();
+    }
+</script>
+
+<!body xmlns="http://www.w3.org/1999/html"-->
+    <div class="container">
+
+        <div class="page-header">
+          <h1>{{title}}</h1>
+        </div>
+
+        <form action="{{TOPIC_DIC['Notice_update']['url']}}" id = "content" class="form-inline" method="post" enctype=multipart/form-data>
+
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <input class="form-control" placeholder="Enter title" name="title">
+                    {% if form.title.errors %}
+                        <ul class="errors">
+                        {% for error in form.title.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                        </ul>
+                    {% endif %}
+                </div>
+
+                <div class="panel-body">
+                    <div>
+                        <textarea class="form-control" id="contentEditor" name="contentEditor" rows="10" cols="100"></textarea>
+                    </div>
+                    <!-- simple text area
+                    <div class="form-group">
+                        <textarea class="form-control" rows="20" placeholder="Enter content" name="content"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>File input</label>
+                        <input type="file" name="file">
+                    </div>
+                    -->
+                </div>
+
+                <div class="panel-footer">
+                    <!-- <button type="submit" class="btn btn-outline btn-primary">Save</button> -->
+                    <button class="btn btn-outline btn-primary"><a href="#" onclick="javascript:submitContents()">Save</a></button>
+                    <button type="cancel" class="btn btn-outline btn-default">Cancel</button>
+                </div>
+            </div>
+
+        </form>
+
+    </div>
+<!--/body-->
+
+{% endblock %}

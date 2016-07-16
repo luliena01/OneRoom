@@ -1,0 +1,39 @@
+{% macro render_pagination(pagination) %}
+<!--div class=pagination-->
+<nav>
+    <ul class="pagination">
+        {% if pagination.has_prev %}
+            <li>
+                <!--a href="{{ url_for_other_page(pagination.page - 1) }}">Priv &raquo;</a-->
+                <a href="{{ url_for_other_page(pagination.page - 1) }}" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+        {% endif %}
+
+        {%- for page in pagination.iter_pages() %}
+            {% if page %}
+                {% if page != pagination.page %}
+                    <!--a href="{{ url_for_other_page(page) }}">{{ page }}</a-->
+                    <li><a href="{{ url_for_other_page(page) }}"> {{ page }} </a></li>
+                {% else %}
+                    <!--strong>{{ page }}</strong-->
+                    <li><a href="{{ url_for_other_page(page) }}"> {{ page }} </a></li>
+                {% endif %}
+            {% else %}
+                <li><a href="{{ url_for_other_page(1) }}"> 1 </a></li>
+            {% endif %}
+        {%- endfor %}
+
+        {% if pagination.has_next %}
+            <!--a href="{{ url_for_other_page(pagination.page + 1) }}">Next &raquo;</a-->
+            <li>
+                <a href="{{ url_for_other_page(pagination.page + 1) }}" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+        {% endif %}
+        <!--/div-->
+    </ul>
+</nav>
+{% endmacro %}

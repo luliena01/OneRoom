@@ -1,0 +1,55 @@
+{% extends "views/header.html" %}
+
+{% block body %}
+
+<script type="text/javascript">
+    function login() {
+        var json = {};
+        json.id = $('#email').val();
+        json.password = $('#password').val();
+
+        json = JSON.stringify(json);
+
+        alert(json);
+
+        $.ajax({
+            dataType: "json",
+            contentType: "application/json",
+            url: '/auth/login',
+            type: 'POST',
+            data: json,
+            success: function(data) {
+                if(data.status == true) {
+                    window.location = "/wp/main";
+                } else {
+                    alert(data.error.message);
+                }
+//                $('#title').val(json.title);
+//                $('#contentEditor').text(json.content);
+//
+//                $('#content').attr('action', $('#content').attr('action') + "/" +  index);
+//                $('#content').attr('method', 'put');
+            },
+            fail: function() {
+                alert('error');
+            }
+        });
+    }
+</script>
+
+    <div class="container">
+
+        <br>
+        <h4>Login</h4>
+        <br>
+        <!--form action="/login/" class="form-inline" method="post"-->
+        <!--<form action="/auth/login" class="form-inline" method="post"> -->
+        <div>
+            E-mail : <input id="email" type="text" class="form-control" placeholder="Email" name="email">
+            Password : <input id="password" type="password" class="form-control" placeholder="Password" name="password">
+            <input class="btn btn-default" type="submit" value="Login" onclick="login()">
+        </div>
+        <!-- </form> -->
+    </div>
+
+{% endblock %}

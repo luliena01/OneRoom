@@ -1,0 +1,156 @@
+{% extends "views/header.html" %}
+
+{% block body %}
+
+<head>
+	<script type="text/javascript">
+		var current;
+
+		$(function () {
+			init();
+		});
+
+		function init() {
+			$.ajax({
+				dataType: "json",
+				url: "/auth/user",
+				method: "GET",
+				success: function (data) {
+					if (data.status == true) {
+						users = data.data;
+
+						$('#list').children().remove();
+						for (var i = 0; i < users.length; i++) {
+							var content = '';
+							content += '<tr id="' + users[i].code + '">';
+							content += '    <td>' + users[i].email + '</td>';
+							content += '    <td>' + users[i].user_name + '</td>';
+							content += '    <td id="' + users[i].role.id + '">' + users[i].role.name + '</td>';
+							content += '    <td>' + ((typeof users[i].room_info == "undefined" || users[i].room_info == null) ?
+											'' : '<span>'+ users[i].room_info.room +'</span>'+ ((users[i].room_info.is_living == true)?
+																		'<button name="tanentStatus" type="button" class="btn btn-success btn-circle" onclick="changeTenant(this)"><i class="fa fa-check"></i></button>'
+																		: '<button name="tanentStatus" type="button" class="btn btn-info btn-circle" onclick="changeTenant(this)"><i class="fa fa-link"></i></button>'));
+							content += '    	</td>'
+							content += '    <td>' + users[i].phone + '</td>';
+							content += '    <td>' + ((users[i].confirmed == true)?
+																		'<button name="confirmed" type="button" class="btn btn-success btn-circle" onclick="changeConfirm(this)"><i class="fa fa-check"></i></button>'
+																		: '<button name="confirmed" type="button" class="btn btn-warning btn-circle" onclick="changeConfirm(this)"><i class="fa fa-times"></i></button>');
+							content += '		</td>';
+							content += '    <td>' + users[i].member_since + '</td>';
+							content += '    <td>' + users[i].last_seen + '</td>';
+							content += '</tr>';
+
+							$('#list').append(content);
+						}
+					} else {
+						alert(data.error.message);
+					}
+				},
+				fail: function (data) {
+					alert(data.message);
+				}
+			});
+		}
+
+		function changeConfirm(id) {
+			var json = {}
+			if ($(id).hasClass('btn-success')) {
+				json.confirmed = false;
+			} else {
+				json.confirmed = true;
+			}
+
+			$.ajax({
+				dataType: "json",
+				contentType: "application/json",
+				url: '/auth/user/' + $(id).parent().parent().attr('id'),
+				type: "PUT",
+				data: JSON.stringify(json),
+				success: function(data) {
+					if (data.status == true) {
+						data = data.data;
+						if (data.confirmed) {
+							$(id).removeClass('btn-warning').addClass('btn-success').find('i').removeClass('fa-times').addClass('fa-check');
+						} else {
+							$(id).removeClass('btn-success').addClass('btn-warning').find('i').removeClass('fa-check').addClass('fa-times');
+						}
+					} else {
+						alert(data.error.message);
+					}
+				},
+				fail: function(data) {
+					alert('error');
+				}
+			});
+		}
+
+		function changeTenant(id) {
+			var json = {}
+			json.room = $(id).parent().find('span').html();
+			if ($(id).hasClass('btn-success')) {
+				json.is_living = false;
+			} else {
+				json.is_living = true;
+			}
+
+			$.ajax({
+				dataType: "json",
+				contentType: "application/json",
+				url: '/auth/room/' + $(id).parent().parent().attr('id'),
+				type: "PUT",
+				data: JSON.stringify(json),
+				success: function(data) {
+					if (data.status) {
+						data = data.data;
+						if(data.is_living) {
+							$(id).removeClass('btn-info').addClass('btn-success').find('i').removeClass('fa-link').addClass('fa-check');
+						} else {
+							$(id).removeClass('btn-success').addClass('btn-info').find('i').removeClass('fa-check').addClass('fa-link');
+						}
+					} else {
+						alert(data.error.message);
+					}
+				},
+				fail: function(data) {
+					alert('error');
+				}
+			});
+		}
+	</script>
+</head>
+
+<!--body xmlns="http://www.w3.org/1999/html"-->
+<div class="container">
+
+	<div class="page-header">
+		<h1>{{title}}</h1>
+	</div>
+
+	<div class="panel panel-default">
+		<!-- Table -->
+		<div class="panel-body">
+			<div class="table-responsive">
+				<table class="table table-hover">
+					<thead>
+					<tr>
+						<th>Email</th>
+						<th>Name</th>
+						<th>Role</th>
+						<th>Room</th>
+						<th>Phone</th>
+						<th>Confirmed</th>
+						<th>Last seen</th>
+						<th>Registered Date</th>
+					</tr>
+					</thead>
+					<tbody id="list">
+
+					</tbody>
+				</table>
+
+			</div>
+		</div>
+	</div>
+	<!--/body-->
+
+	{% endblock %}

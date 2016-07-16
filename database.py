@@ -1,5 +1,5 @@
-import psycopg2
 from config import CONFIG
+import psycopg2
 
 def connection():
     try:

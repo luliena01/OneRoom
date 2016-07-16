@@ -1,0 +1,71 @@
+{% extends TOPIC_DIC['Header']['html'] %}
+
+{% block body %}
+
+<head>
+	<script type="text/javascript">
+		function detail(id) {
+			alert("{{TOPIC_DIC['Shop_detail']['url']}}" + $(id).find('div.panel-heading').attr('shop_num'));
+            window.location.href = "{{TOPIC_DIC['Shop_detail']['url']}}" + $(id).find('div.panel-heading').attr('shop_num');
+		}
+
+        function init() {
+            $.getJSON("{{TOPIC_DIC['Shop_list']['url']}}"
+            ).done(function(json) {
+            	var data = json.boardList;
+				for(var i=0; i<data.length; i++) {
+					var content = '';
+					content += '<div class="col-lg-4">';
+					content += '<div class="panel panel-info" style="cursor: pointer" onclick="detail(this)">';
+					content += '	<div class="panel-heading" shop_num=' + data[i].index + '>';
+					content += 			data[i].title;
+					content += '	</div>';
+					content += '		<div class="panel-body">';
+					content += '			<img src="' + data[i].title_img + '" style="height: 100%; width: 100%;">';
+					content += '		</div>';
+					content += '		<div class="panel-footer">';
+					content += 				data[i].title_info;
+					content += '		</div>';
+					content += '</div></div>';
+
+					$('#list').append(content);
+                }
+            })
+            .fail(function(json) {
+                alert('error');
+            });
+        }
+
+        $(function() {
+            init();
+        });
+
+
+	</script>
+</head>
+
+<!--body xmlns="http://www.w3.org/1999/html"-->
+<div class="container">
+
+	<div class="page-header">
+		<h1>{{title}}</h1>
+	</div>
+
+	<div class="panel panel-default">
+		<!-- sub panel -->
+		<div class="panel-body">
+			<div class="row">
+				<div id="list">
+				</div>
+			</div>
+			<hr>
+			<div class="row" style="width: 100%;">
+				<a href="{{TOPIC_DIC['Shop_register']['url']}}">
+					<button type="button" class="btn btn-primary" style="float: right;"> Write</button>
+				</a>
+			</div>
+		</div>
+	</div>
+	<!--/body-->
+
+	{% endblock %}

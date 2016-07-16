@@ -1,0 +1,143 @@
+{% extends "views/header.html" %}
+
+{% block body %}
+<script type="text/javascript">
+    $(function () {
+        setRole();
+        setRoom();
+
+        setType(3);
+    });
+    function setRoom() {
+        $.ajax({
+            dataType: "json",
+            contentType: "application/json",
+            url: '/auth/room',
+            type: 'GET',
+            success: function(data) {
+                if(data.status == true) {
+                    data = data.data;
+                    for(var i=0; i< data.length; i++)
+                        $('#room').append('<option value="' + data[i].room + '">' + data[i].room + '</option>')
+                } else {
+                    alert(data.error.message);
+                }
+            },
+            fail: function() {
+                alert('error');
+            }
+        });
+    }
+
+    function setRole() {
+        $.ajax({
+            dataType: "json",
+            contentType: "application/json",
+            url: '/auth/role',
+            type: 'GET',
+            success: function(data) {
+                if(data.status == true) {
+                    data = data.data;
+                    for(var i=0; i< data.length; i++)
+                        $('#role').append('<option value="' + data[i].id + '">' + data[i].name + '</option>')
+                } else {
+                    alert(data.error.message);
+                }
+            },
+            fail: function() {
+                alert('error');
+            }
+        });
+    }
+
+    function changeType() {
+        setType($('#role option:selected').val());
+    }
+
+    function setType(num) {
+        $('#type').val(num);
+
+        if(num == 2) {
+            $('#room').parent().show();
+        } else {
+            $('#room').parent().hide();
+        }
+    }
+    
+    function register() {
+        var json = {};
+        json.email = $('#email').val();
+        json.password = $('#password').val();
+        if(json.password != $('#password_conformed').val()) {
+            alert('Please, check your passwords.');
+            $('#password_conformed').focus();
+            return;
+        }
+        json.user_name = $('#name').val();
+        json.role = $('#role option:selected').val();
+        alert(json.role)
+        if(json.role == 2) {
+            json.room = $('#room option:selected').val();
+        }
+        json.phone = $('#phone').val();
+
+        json = JSON.stringify(json);
+        alert(json);
+
+        $.ajax({
+            dataType: "json",
+            contentType: "application/json",
+            url: '/auth/user',
+            type: 'POST',
+            data: json,
+            success: function(data) {
+                if(data.status == true) {
+                    alert("Success registering your ID");
+
+                    window.location = "/wp/main";
+                } else {
+                    alert(data.error.message);
+                    $('#email').focus();
+                }
+            },
+            fail: function() {
+                alert('error');
+            }
+        });
+    }
+
+</script>
+
+    <div class="container">
+
+        <br>
+        <h4>Register</h4>
+        <br>
+
+        <div>
+            <div>
+                Email <input id="email" type="text" class="form-control" placeholder="Email" name="email" value="{{request.form.email}}"><br>
+            </div>
+            <div>
+                Password <input id="password" type="password" class="form-control" placeholder="Password" name="password" value="{{request.form.password}}"><br>
+                Password conformed <input id="password_conformed" type="password" class="form-control" placeholder="Password" name="password comform" value="{{request.form.passwordConform}}"><br>
+            </div>
+            <div>
+                User name <input id="name" type="text" class="form-control" placeholder="Username" name="username" value="{{request.form.username}}"><br>
+            </div>
+            <div>
+                Type <select id="role" onchange="changeType(this)"></select><br>
+            </div>
+            <div>
+                Room number <select id="room"></select><br>
+                <!-- Room number <input type="text" class="form-control" placeholder="Room" name="room" value="{{request.form.room}}"><br> -->
+            </div>
+            <div>
+                Phone number <input id="phone" type="text" class="form-control" placeholder="Phone" name="phone" value="{{request.form.room}}"><br>
+            </div>
+
+            <input class="btn btn-default" type="submit" value="Register" onclick="register()">
+        </div>
+    </div>
+
+{% endblock %}

@@ -1,5 +1,12 @@
 CONFIG = {
-	'URL': 'http://http://ec2-52-78-13-124.ap-northeast-2.compute.amazonaws.com:5000',
+	'Debug': True,
+
+	'URL': 'localhost:5000',
+
+	'Email_confirm': {
+		'enable': False,
+		'sender': 'confirm@Jungam.com'
+	},
 
 	'DB': {
 		'url': 'localhost',
@@ -12,7 +19,10 @@ CONFIG = {
 		'secret_key': "hyerim"
 	},
 	'Storage': {
-		'log': 'D:\\workspace_intellij\\Flask\OneRoom\\templates\\logs',
-		'img': 'D:\\workspace_intellij\\Flask\OneRoom\\templates\\files'
+		'log': 'D:\\workspace_intellij\\Flask\\OneRoom\\OneRoom\\templates\\logs',
+		'img': 'D:\\workspace_intellij\\Flask\\OneRoom\\OneRoom\\templates\\files'
+	},
+	'Page': {
+		'max_content': 3
 	}
 }
