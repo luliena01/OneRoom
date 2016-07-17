@@ -1,4 +1,4 @@
-from flask import current_app, session, request, make_response
+from flask import current_app, request, make_response, session
 from flask_restful import Resource, marshal_with, reqparse
 from sqlalchemy.orm import joinedload
 from sqlalchemy.sql.expression import desc
@@ -10,11 +10,10 @@ from utils.GenerateUniqueId import generate_uuid
 from boards.notice import fields
 from . import notice
 from auth.decorators import admin_auth, guest_auth
-from utils import Response
+from utils import Response, image, Session
 
-UPLOAD_PATH = os.path.join(CONFIG['Storage']['img'], "notice")
+UPLOAD_PATH = os.path.join(CONFIG['Storage']['img']['path'], "notice")
 PER_PAGE = CONFIG['Page']['max_content']
-NOTICE_BOARD = "NOTICE"
 
 
 class List(Resource):
@@ -43,17 +42,16 @@ class Content(Resource):
 		notice = db_session.query(Notice).filter(Notice.index == index).one()
 
 		# add counter
-		session_notice = session.get(NOTICE_BOARD)
+		session_notice = session.get(Session.NOTICE_BOARD)
 		if session_notice is None or str(index) not in session_notice:
 			notice.counter += 1
 			db_session.commit()
 			if session_notice is None:
-				session[NOTICE_BOARD] = {str(index): True}
+				session[Session.NOTICE_BOARD] = {str(index): True}
 			else:
 				session_notice[str(index)] = True
 
 		return Response.ok(notice)
-
 
 	def __init__(self):
 		self.reqparse = reqparse.RequestParser()
@@ -70,10 +68,11 @@ class Content(Resource):
 
 			title = args['title']
 			content = args['content']
-			email = session.get('email')
+			# email = session.get('email')
+			code = session.get(Session.USER_SESSION)
 
-			#get json from request BUT title and content is null when they was inserted
-			user = db_session.query(User.email).filter(User.email == email).one()
+			# get json from request BUT title and content is null when they was inserted
+			user = db_session.query(User.code).filter(User.code == code).one()
 			new_notice = Notice(title=title, content=content, author_id=user)
 
 			db_session.add(new_notice)
@@ -82,7 +81,7 @@ class Content(Resource):
 			return Response.ok()
 		except Exception as e:
 			current_app.logger.error(e)
-			return {'message': "error"}
+			return Response.error()
 
 	@admin_auth
 	def put(self, index):
@@ -101,7 +100,7 @@ class Content(Resource):
 			return Response.ok()
 		except Exception as e:
 			current_app.logger.error(e)
-			return {'message': e}
+			return Response.error()
 
 	@guest_auth
 	def delete(self, index):
@@ -111,7 +110,7 @@ class Content(Resource):
 			return Response.ok()
 		except Exception as e:
 			current_app.logger.error(e)
-			return {'message': e}
+			return Response.error()
 
 
 @notice.route('/file/<file_no>/', methods=['GET'])
@@ -131,9 +130,9 @@ def get_file(file_no):
 @admin_auth
 def file_update():
 	header = request.headers
-	filename = header["file-name"]
-	filesize = header["file-size"]
-	filetype = header["file-Type"]
+	# filename = header["file-name"]
+	# filesize = header["file-size"]
+	# filetype = header["file-Type"]
 
 	file_no = generate_uuid()
 
@@ -147,9 +146,15 @@ def file_update():
 			if not os.path.exists(UPLOAD_PATH):
 				os.mkdir(UPLOAD_PATH)
 
-			f = open(os.path.join(UPLOAD_PATH, file_no), 'wb')
-			f.write(file)
-			f.close()
+			# f = open(os.path.join(UPLOAD_PATH, file_no), 'wb')
+			# f.write(file)
+			# f.close()
+			#
+			# print('save file : ' + file_no)
+			#
+			# image.resize(os.path.join(UPLOAD_PATH, file_no))
+
+			image.save_img(file, os.path.join(UPLOAD_PATH, file_no))
 
 			current_app.logger.info('Save Notice img file : ' + file_no)
 	except Exception as e:

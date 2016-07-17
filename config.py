@@ -20,7 +20,13 @@ CONFIG = {
 	},
 	'Storage': {
 		'log': 'D:\\workspace_intellij\\Flask\\OneRoom\\OneRoom\\templates\\logs',
-		'img': 'D:\\workspace_intellij\\Flask\\OneRoom\\OneRoom\\templates\\files'
+		'img': {
+			'path':'D:\\workspace_intellij\\Flask\\OneRoom\\OneRoom\\templates\\files',
+			'max_size': {
+				'width': 500,
+				'height':500
+			}
+		}
 	},
 	'Page': {
 		'max_content': 3

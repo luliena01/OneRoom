@@ -18,6 +18,7 @@ file_handler.setFormatter(formatter)
 app.logger.addHandler(file_handler)
 
 
+@app.route('/', methods=["GET"])
 @app.route('/wp/main', methods=["GET"])
 def main():
 	return render_template('views/main.html')

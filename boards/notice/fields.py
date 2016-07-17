@@ -1,11 +1,11 @@
-from flask_restful import fields, reqparse
+from flask_restful import fields
 
 notice = {
 	'index': fields.String,
 	'title': fields.String,
 	'content': fields.String,
 	'counter': fields.Integer(default=0),
-	'register_date': fields.DateTime(dt_format='rfc822'),
+	'register_date': fields.DateTime(dt_format='iso8601'),
 	'author_id': fields.String
 }
 

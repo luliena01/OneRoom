@@ -16,9 +16,6 @@ from utils import Response
 from auth import fields, mail, decorators
 from auth.decorators import admin_auth
 
-LOGIN_SESSION = 'logged_in'
-USER_SESSION = 'code'
-
 
 class Login(Resource):
 	def __init__(self):
@@ -54,7 +51,7 @@ class Login(Resource):
 			session.clear()
 			session['logged_in'] = sha256_crypt.encrypt(str(user.code + user.password_hash))
 			session['code'] = user.code
-			session['admin'] = decorators.is_admin(email)
+			session['admin'] = decorators.is_admin(user.code)
 
 			current_app.logger.info("Login - " + email)
 

@@ -1,0 +1,6 @@
+
+
+LOGIN_SESSION = 'logged_in'
+USER_SESSION = 'code'
+
+NOTICE_BOARD = "NOTICE"

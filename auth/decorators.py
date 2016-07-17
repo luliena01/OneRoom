@@ -3,17 +3,15 @@ from functools import wraps
 from sqlalchemy.orm import joinedload
 from passlib.hash import sha256_crypt
 from database import db_session
+from utils import Session
 import models
-
-LOGIN_SESSION = 'logged_in'
-USER_SESSION = 'code'
 
 
 def guest_auth(func):
 	@wraps(func)
 	def wrap(*args, **kwargs):
-		if LOGIN_SESSION in session:
-			if verify_login(session.get(USER_SESSION), session.get(LOGIN_SESSION)):
+		if Session.LOGIN_SESSION in session:
+			if verify_login(session.get(Session.USER_SESSION), session.get(Session.LOGIN_SESSION)):
 				return func(*args, **kwargs)
 			else:
 				return redirect('/wp/auth/login')
@@ -27,11 +25,11 @@ def guest_auth(func):
 def admin_auth(func):
 	@wraps(func)
 	def wrap(*args, **kwargs):
-		if not verify_login(session.get(USER_SESSION), session.get(LOGIN_SESSION)):
+		if not verify_login(session.get(Session.USER_SESSION), session.get(Session.LOGIN_SESSION)):
 			return redirect('/wp/auth/login')
 
-		if LOGIN_SESSION in session:
-			if is_admin(session.get(USER_SESSION)):
+		if Session.LOGIN_SESSION in session:
+			if is_admin(session.get(Session.USER_SESSION)):
 				return func(*args, **kwargs)
 		else:
 			# flash("You are not administrator.")
@@ -43,11 +41,11 @@ def admin_auth(func):
 def tenant_auth(func):
 	@wraps(func)
 	def wrap(*args, **kwargs):
-		if not verify_login(session.get(USER_SESSION), session.get(LOGIN_SESSION)):
+		if not verify_login(session.get(Session.USER_SESSION), session.get(Session.LOGIN_SESSION)):
 			return redirect('/wp/auth/login')
 
-		if LOGIN_SESSION in session:
-			if is_tenant(session.get(USER_SESSION)) or is_admin(session.get(USER_SESSION)):
+		if Session.LOGIN_SESSION in session:
+			if is_tenant(session.get(Session.USER_SESSION)) or is_admin(session.get(Session.USER_SESSION)):
 				return func(*args, **kwargs)
 		else:
 			# flash("You are not administrator.")
