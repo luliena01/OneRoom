@@ -84,9 +84,24 @@ class Shop(Base):
     content = Column(Text)
     counter = Column(Integer, default=0)
     register_date = Column(BigInteger, default=0)
-    author_id = Column(Text, ForeignKey('users.code'))
+    author_id = Column(String(100), ForeignKey('users.code'))
 
     user = relationship("User")
+
+
+class Bill(Base):
+    __tablename__ = 'bill'
+
+    target_date = Column(DateTime(), default=datetime.utcnow, primary_key=True)
+    room = Column(String(64), ForeignKey('rooms.room'), primary_key=True)
+    author_id = Column(String(100))
+    electric_usage = Column(Integer, default=0)
+    electric_amount = Column(Integer, default=0)
+    gas_usage = Column(Integer, default=0)
+    gas_amount = Column(Integer, default=0)
+    description = Column(String(200))
+
+    room_info = relationship("Room")
 
 
 # import json

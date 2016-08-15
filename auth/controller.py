@@ -11,7 +11,7 @@ from . import auth
 from database import db_session
 import models
 import error_code
-from utils import Response
+from utils import Response, Session
 
 from auth import fields, mail, decorators
 from auth.decorators import admin_auth
@@ -49,9 +49,9 @@ class Login(Resource):
 			db_session.commit()
 
 			session.clear()
-			session['logged_in'] = sha256_crypt.encrypt(str(user.code + user.password_hash))
-			session['code'] = user.code
-			session['admin'] = decorators.is_admin(user.code)
+			session[Session.LOGIN_SESSION] = sha256_crypt.encrypt(str(user.code + user.password_hash))
+			session[Session.USER_SESSION] = user.code
+			session[Session.ADMIN_SESSION] = decorators.is_admin(user.code)
 
 			current_app.logger.info("Login - " + email)
 
@@ -89,11 +89,31 @@ class User(Resource):
 		super(User, self).__init__()
 
 	@admin_auth
-	@marshal_with(Response.ok_field(fields.user))
-	def get(self):
-		list = db_session.query(models.User).options(joinedload(models.User.role)).options(joinedload(models.User.room_info)).order_by(asc(models.User.email)).all()
+	# @marshal_with(Response.ok_field(fields.user))
+	# def get(self):
+	# 	try:
+	# 		list = db_session.query(models.User).options(joinedload(models.User.role)).options(joinedload(models.User.room_info)).order_by(asc(models.User.email)).all()
+	#
+	# 		return Response.ok(list)
+	# 	except Exception as e:
+	# 		current_app.logger.error(str(e))
+	# 		return Response.error(error_code.Global.UNKOWN)
 
-		return Response.ok(list)
+	@marshal_with(Response.ok_field(fields.user))
+	def get(self, code=None):
+		try:
+			if code is None:
+				#check admin auth
+				list = db_session.query(models.User).options(joinedload(models.User.role)).options(joinedload(models.User.room_info)).order_by(asc(models.User.email)).all()
+
+				return Response.ok(list)
+			else:
+				user = db_session.query(models.User).options(joinedload(models.User.role)).options(joinedload(models.User.room_info)).filter(models.User.code == code).one()
+
+				return Response.ok(user)
+		except Exception as e:
+			current_app.logger.error(str(e))
+			return Response.error(error_code.Global.UNKOWN)
 
 	# sign up
 	def post(self):
@@ -153,8 +173,14 @@ class User(Resource):
 			current_app.logger.error(str(e))
 			return Response.error(error_code.Global.UNKOWN)
 
-	def delete(self):
-		return {'status': 'ok'}
+	def delete(self, code):
+		try:
+			db_session.query(models.User).filter(models.User.code == code).delete()
+
+			return Response.ok()
+		except Exception as e:
+			current_app.logger.error(str(e))
+			return Response.error(error_code.Global.UNKOWN)
 
 
 class Room(Resource):

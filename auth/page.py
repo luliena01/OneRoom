@@ -12,6 +12,11 @@ def register():
 	return render_template('views/auth/register.html')
 
 
+@auth_wp.route('/user/<string:code>', methods=["GET"])
+def user_setting(code):
+	return render_template('views/auth/register.html')
+
+
 @auth_wp.route('/user/list', methods=["GET"])
 def user_list():
 	return render_template('views/auth/list.html')

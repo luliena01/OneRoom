@@ -1,7 +1,10 @@
 from flask_restful import fields, reqparse
 
 
-def ok_field(data_type={}):
+def ok_field(data_type=None):
+	if not data_type:
+		data_type = {}
+
 	res = {
 		'status': fields.Boolean,
 		'data': fields.Nested(data_type, allow_null=True)

@@ -2,5 +2,6 @@
 
 LOGIN_SESSION = 'logged_in'
 USER_SESSION = 'code'
+ADMIN_SESSION = 'admin'
 
 NOTICE_BOARD = "NOTICE"

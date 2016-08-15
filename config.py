@@ -30,5 +30,8 @@ CONFIG = {
 	},
 	'Page': {
 		'max_content': 3
+	},
+	'Bill': {
+		'month': 6
 	}
 }
