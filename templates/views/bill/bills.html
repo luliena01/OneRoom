@@ -1,0 +1,280 @@
+{% extends "views/header.html" %}
+
+{% block body %}
+
+<script src="{{ url_for('static', filename='bower_components/raphael/raphael-min.js') }}"></script>
+<script src="{{ url_for('static', filename='bower_components/morrisjs/morris.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/accounting.min.js') }}"></script>
+
+<script type="text/javascript">
+	$(function () {
+		setUserBill();
+	});
+
+	var date = {}
+
+	function initMonth() {
+		$.ajax({
+			dataType: "json",
+			contentType: "application/json",
+			url: '/bill/monthlist',
+			type: 'GET',
+			success: function (data) {
+				if (data.status == true) {
+					data = data.data;
+
+					date = new Map();
+					for(var i=0; i<data.length; i++) {
+						var year = data[i].year;
+						var month = data[i].month;
+
+						if(date.has(year)) {
+							date.get(year).push(month);
+						} else {
+							date.set(year, [month]);
+						}
+					}
+
+					var yearMax = '0';
+					date.forEach(function (value, key, mapObj) {
+						$('#year').append('<option>' + key + '</option>');
+						yearMax = (parseInt(yearMax) < parseInt(key))? key : yearMax;
+					});
+
+					var month =  date.get(yearMax)
+					var monthMax = "0";
+					for(var i=0; i<month.length; i++) {
+						$('#month').append('<option>' + month[i]+ '</option>');
+						monthMax = (parseInt(monthMax) < parseInt(month[i]))? month[i] : monthMax;
+					}
+					$('#month').val(monthMax);
+
+					getMonthlyBill(yearMax, monthMax);
+				}else {
+					alert(data.error.message);
+				}
+			},
+			fail: function () {
+				alert('error');
+			}
+		});
+	}
+
+	function getBill() {
+		getMonthlyBill($('#year').val(), $('#month').val());
+	}
+
+	function setUserBill() {
+		$('#userTab').addClass('active');
+		$('#userBillContent').addClass('in active');
+
+		$('#monthlyTab').removeClass('active');
+		$('#monthlyBillContent').removeClass('in active');
+
+		if ($('#userBill').find('tr').length > 0)
+			return;
+
+		$.ajax({
+			dataType: "json",
+			contentType: "application/json",
+			url: '/bill/user',
+			type: 'GET',
+			success: function (data) {
+				if (data.status == true) {
+					data = data.data;
+					var bill = [];
+					for (var i = 0; i < data.length; i++) {
+						var month = {}
+						month.month = data[i].date;
+						month.electronic = data[i].electric.amount;
+						month.gas = data[i].gas.amount;
+
+						bill.push(month);
+
+						var desc = (data[i].description === 'undefined' || data[i].description.length == 0) ? ' ' : data[i].description;
+
+						var row = '';
+						row += '<tr>';
+						row += '<td style="text-align:center;" width="10%">' + data[i].date + '</td>';
+						row += '<td style="text-align:right;">' + data[i].electric.usage + '</td>';
+						row += '<td style="text-align:right;">' + accounting.formatNumber(data[i].electric.amount) + '</td>';
+						row += '<td style="text-align:right;">' + data[i].gas.usage + '</td>';
+						row += '<td style="text-align:right;">' + accounting.formatNumber(data[i].gas.amount) + '</td>';
+						row += '<td style="text-align:left;">' + desc + '</td>';
+						row += '</tr>';
+
+						$('#userBill').append(row);
+					}
+					Morris.Bar({
+						element: 'morris-bar-chart',
+						data: bill,
+						xkey: 'month',
+						ykeys: ['electronic', 'gas'],
+						labels: ['electronic', 'gas'],
+						hideHover: 'auto',
+						resize: true
+					});
+				} else {
+					alert(data.error.message);
+				}
+			},
+			fail: function () {
+				alert('error');
+			}
+		});
+	}
+
+	function getMonthlyBill(year, month) {
+		if(year == null || month == null) {
+
+		}
+		var url = '/bill/month';
+		if (year != null && month != null)
+			url += "/" + year + "/" + month;
+
+		$.ajax({
+			dataType: "json",
+			contentType: "application/json",
+			url: url,
+			type: 'GET',
+			success: function (data) {
+				if (data.status == true) {
+					data = data.data;
+
+					$('#monthlyBill').find('tr').remove();
+					var bill = [];
+					for (var i = 0; i < data.length; i++) {
+						var month = {}
+						month.month = data[i].date;
+						month.electronic = data[i].electric.amount;
+						month.gas = data[i].gas.amount;
+
+						bill.push(month);
+
+						var desc = (data[i].description === 'undefined' || data[i].description.length == 0) ? ' ' : data[i].description;
+
+						var row = '';
+						row += '<tr>';
+						row += '<td style="text-align:center;" width="10%">' + data[i].room + '</td>';
+						row += '<td style="text-align:right;">' + data[i].electric.usage + '</td>';
+						row += '<td style="text-align:right;">' + accounting.formatNumber(data[i].electric.amount) + '</td>';
+						row += '<td style="text-align:right;">' + data[i].gas.usage + '</td>';
+						row += '<td style="text-align:right;">' + accounting.formatNumber(data[i].gas.amount) + '</td>';
+						row += '<td style="text-align:left;">' + desc + '</td>';
+						row += '</tr>';
+
+						$('#monthlyBill').append(row);
+					}
+				} else {
+					alert(data.error);
+				}
+			},
+			fail: function () {
+				alert('error');
+			}
+		});
+	}
+
+	function initMonthlyBill() {
+		$('#monthlyTab').addClass('active');
+		$('#monthlyBillContent').addClass('in active');
+
+		$('#userTab').removeClass('active');
+		$('#userBillContent').removeClass('in active');
+
+		if ($('#monthlyBill').find('tr').length > 0)
+			return;
+
+		initMonth();
+//		getMonthlyBill(null, null)
+	}
+</script>
+
+<div class="container">
+
+	<div class="page-header">
+		<div>
+		<h1>세금</h1>
+		{% if session.admin %}
+			<a href="/wp/bill/manage"><button type="button" class="btn btn-primary btn-xs">관리자</button></a>
+		{% endif %}
+		</div>
+	</div>
+
+	<ul class="nav nav-tabs">
+		<li id="userTab" class="active"><a href="#userBillContent" data-toggle="tab" onclick="setUserBill()"> 사용자 </a>
+		</li>
+		<li id="monthlyTab"><a href="#monthlyBillContent" data-toggle="tab" onclick="initMonthlyBill()"> 월별 </a>
+		</li>
+	</ul>
+
+	<div class="tab-content">
+		<div class="tab-pane fade in active" id="userBillContent">
+			<div class="col-lg-8">
+				<div id="morris-bar-chart"></div>
+			</div>
+			<!-- /.col-lg-8 (nested) -->
+			<div class="col-lg-4">
+				<div class="table-responsive">
+					<table class="table table-bordered table-hover table-striped">
+						<thead>
+						<tr>
+							<th rowspan="2" style="text-align:center;" width="10%">날짜</th>
+							<th colspan="2" style="text-align:center;">전기</th>
+							<th colspan="2" style="text-align:center;">가스</th>
+							<th rowspan="2" style="text-align:center;">비고</th>
+						</tr>
+						<tr>
+							<th style="text-align:center;">사용량</th>
+							<th style="text-align:center;">요금</th>
+							<th style="text-align:center;">사용량</th>
+							<th style="text-align:center;">요금</th>
+						</tr>
+						</thead>
+						<tbody id="userBill">
+						</tbody>
+					</table>
+				</div>
+				<!-- /.table-responsive -->
+			</div>
+			<!-- /.col-lg-4 (nested) -->
+		</div>
+
+		<div class="tab-pane fade" id="monthlyBillContent">
+			<div class="form-group">
+				<label>년</label>
+				<select id="year" class="form-control">
+				</select>
+				<label>월</label>
+				<select id="month" class="form-control">
+				</select>
+				<button type="button" class="btn btn-primary btn-sm" onclick="getBill()">bill</button>
+			</div>
+
+			<div class="table-responsive">
+				<table class="table table-bordered table-hover table-striped">
+					<thead>
+					<tr>
+						<th rowspan="2" style="text-align:center;" width="10%">호수</th>
+						<th colspan="2" style="text-align:center;">전기</th>
+						<th colspan="2" style="text-align:center;">가스</th>
+						<th rowspan="2" style="text-align:center;">비고</th>
+					</tr>
+					<tr>
+						<th style="text-align:center;">사용량</th>
+						<th style="text-align:center;">요금</th>
+						<th style="text-align:center;">사용량</th>
+						<th style="text-align:center;">요금</th>
+					</tr>
+					</thead>
+					<tbody id="monthlyBill">
+					</tbody>
+				</table>
+			</div>
+			<!-- /.table-responsive -->
+		</div>
+	</div>
+	<!-- /. tab content-->
+</div>
+
+{% endblock %}

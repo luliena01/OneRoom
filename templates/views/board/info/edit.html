@@ -1,0 +1,142 @@
+{% extends "views/header.html" %}
+
+{% block body %}
+
+<script type="text/javascript" src="{{ url_for('static', filename='editor/js/HuskyEZCreator.js') }}" charset="utf-8"></script>
+<!--<script type="text/javascript" src="{{ url_for('static', filename='editor/photo_uploader/js/HuskyEZCreator.js') }}" charset="utf-8"></script>-->
+<!-- base -->
+<script type="text/javascript" src="{{ url_for('static', filename='js/base.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='editor/sample/photo_uploader/jindo.min.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='editor/sample/photo_uploader/attach_photo.js') }}"></script>
+
+<script type="text/javascript">
+	var oEditors = [];
+	var room;
+
+	$(function () {
+		nhn.husky.EZCreator.createInIFrame({
+			oAppRef: oEditors,
+			elPlaceHolder: "contentEditor",
+			sSkinURI: "{{ url_for('static', filename='editor/SmartEditor2Skin.html') }}",
+			fCreator: "createSEditor2"
+		});
+
+		room = getRequestParam('room')
+		if (typeof room == "undefined") {
+			window.history.back();
+		}
+
+		alert(room)
+		$('#roomNum').text(room);
+	});
+
+	function submitContents() {
+		oEditors.getById['contentEditor'].exec("UPDATE_CONTENTS_FIELD", []);
+
+		var sHTML = oEditors.getById["contentEditor"].getIR();
+
+		var json = {};
+		json.room = '101'
+		json.content = sHTML;
+
+		json = JSON.stringify(json)
+
+		var url = '/info/room';
+		var method = 'POST';
+		if (typeof id != 'undefined') {
+			url += '/' + id;
+			method = "PUT";
+		}
+
+		$.ajax({
+			dataType: "json",
+			contentType: "application/json",
+			url: url,
+			type: method,
+			data: json,
+			success: function (json) {
+				if (json.status == true) {
+					window.location = "/wp/info/list";
+				} else {
+					alert(json.error.message);
+				}
+			},
+			fail: function (json) {
+				alert('error');
+			}
+		});
+	}
+	
+	function uploadHeaderImg(fileForm) {
+//		var tempFile = $("#headerForm").find("input")[0].files[0];
+		var tempFile = $(fileForm).files[0];
+		var sUploadURL = "/info/file/";
+
+		var oAjax = jindo.$Ajax(sUploadURL, {
+			type: 'xhr',
+			method : "post",
+			onload : function(res){ // 요청이 완료되면 실행될 콜백 함수
+				var sResString = res._response.responseText;
+				alert(sResString);
+				if (res.readyState() == 4) {
+					if(sResString.indexOf("NOTALLOW_") > -1){
+						var sFileName = sResString.replace("NOTALLOW_", "");
+						alert("이미지 파일(jpg,gif,png,bmp)만 업로드 하실 수 있습니다. ("+sFileName+")");
+					}else{
+						//성공 시에  responseText를 가지고 array로 만드는 부분.
+//						makeArrayFromString(res._response.responseText);
+						var fileUrl = sResString.split("=")[1];
+						alert(fileUrl);
+						alert($('#headerImg').html())
+						$('#headerImg').append('<img id="headerImg" src="' + fileUrl +'">');
+					}
+				}
+				alert('save info file');
+			},
+			timeout : 3
+			//onerror :  jindo.$Fn(onAjaxError, this).bind()
+		});
+		oAjax.header("contentType","multipart/form-data");
+		oAjax.header("file-name",encodeURIComponent(tempFile.name));
+		oAjax.header("file-size",tempFile.size);
+		oAjax.header("file-Type",tempFile.type);
+		oAjax.request(tempFile);
+	}
+</script>
+
+<!--<!body xmlns="http://www.w3.org/1999/html"&ndash;&gt;-->
+<div class="container">
+
+	<div class="page-header">
+		<h1>{{title}}</h1>
+	</div>
+
+	<div class="panel panel-info">
+		<div class="panel-heading">
+			<div id="roomNum"></div>
+			<div id="headerImg"></div>
+			<div>
+				<form id="headerForm" action="/info/file" method="post" enctype="multipart/form-data">
+					<input type="file" name="file" onchange="uploadHeaderImg(this)"/>
+				</form>
+			</div>
+		</div>
+
+		<div class="panel-body">
+			<div id="comment"></div>
+			<div id="info"></div>
+			<div id="content">
+				<textarea class="form-control" id="contentEditor" name="contentEditor" rows="10" cols="100"></textarea>
+			</div>
+		</div>
+
+		<button class="btn btn-outline btn-primary" onclick="javascript:submitContents()">Save</button>
+		<button type="cancel" class="btn btn-outline btn-default"><a href=javascript:window.history.back();>Cancel</a></button>
+	</div>
+
+	<!--</form>-->
+
+</div>
+<!--/body-->
+
+{% endblock %}

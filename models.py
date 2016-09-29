@@ -22,9 +22,14 @@ class Room(Base):
     __tablename__ = 'rooms'
     room = Column(String(10), primary_key=True)
     is_living = Column(Boolean, default=False)
+    is_show = Column(Boolean, default=True)
+    floor = Column(String(10))
+    title = Column(String(256))
+    comment = Column(String(256))
+    info = Column(Text)     #json
+    content = Column(Text)
 
     user = relationship("User")
-    # tanent = db.relationship('User', backref='room', lazy='dynamic')
 
 
 class User(Base):
@@ -102,7 +107,6 @@ class Bill(Base):
     description = Column(String(200))
 
     room_info = relationship("Room")
-
 
 # import json
 # from sqlalchemy.ext.declarative import DeclarativeMeta

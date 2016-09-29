@@ -6,8 +6,127 @@
         setRole();
         setRoom();
 
-        setType(3);
+        if(isUserSetting()) {
+//            alert(getUserCode());
+            $('#header').text('My Account');
+            $('#user').append('<input class="btn btn-default" type="submit" value="Update" onclick="update()">');
+            $('#user').append('<input class="btn btn-default" type="submit" value="Delete account" onclick="removeAccount()">');
+
+            setUser(getUserCode());
+        } else {
+            $('#header').text('Register');
+            $('#user').append('<input class="btn btn-default" type="submit" value="Register" onclick="register()">');
+
+            setType(3);
+        }
     });
+
+    function removeAccount() {
+        if(!confirm("Are you sure to delete your account? Every your data will be deleted."))
+                return;
+
+        $.ajax({
+            dataType: "json",
+            contentType: "application/json",
+            url: '/auth/user/' + getUserCode(),
+            type: 'DELETE',
+            data: json,
+            success: function(data) {
+                if(data.status == true) {
+                    alert("Success to delete your account");
+
+                    window.location = "/wp/main";
+                } else {
+                    alert(data.error.message);
+                }
+            },
+            fail: function() {
+                alert('error');
+            }
+        });
+    }
+
+    function update() {
+        var json = {};
+        json.email = $('#email').val();
+
+        if($('#password').val().length > 0 && $('#password_conformed').val() > 0) {
+            json.password = $('#password').val();
+            if (json.password != $('#password_conformed').val()) {
+                alert('Please, check your passwords.');
+                $('#password_conformed').focus();
+                return;
+            }
+        }
+        json.user_name = $('#name').val();
+        json.role = $('#role option:selected').val();
+
+        if(json.role == 2) {
+            json.room = $('#room option:selected').val();
+        }
+        json.phone = $('#phone').val();
+
+        json = JSON.stringify(json);
+
+        $.ajax({
+            dataType: "json",
+            contentType: "application/json",
+            url: '/auth/user/' + getUserCode(),
+            type: 'PUT',
+            data: json,
+            success: function(data) {
+                if(data.status == true) {
+                    alert("Success update your account");
+
+                    window.location = "/wp/main";
+                } else {
+                    alert(data.error.message);
+                }
+            },
+            fail: function() {
+                alert('error');
+            }
+        });
+    }
+
+    function setUser(code) {
+        $.ajax({
+            dataType: "json",
+            contentType: "application/json",
+            url: '/auth/user/' + code,
+            type: 'GET',
+            success: function(data) {
+                if(data.status == true) {
+                    data = data.data;
+                    $('#email').val(data.email).prop('disabled', true);
+//                    $('#password').val(data.password);
+//                    $('#password_conformed').val(data.password);
+                    $('#name').val(data.user_name);
+                    $('#role').val(data.role.id);
+                    if(data.room_info != null) {
+                        $('#room').val(data.room_info.room);
+                    }
+                    $('#phone').val(data.phone);
+                } else {
+                    alert(data.error.message);
+                }
+            },
+            fail: function() {
+                alert('error');
+            }
+        });
+    }
+
+    function isUserSetting() {
+        temp = window.location.pathname.split('/')
+        return (temp[temp.length - 2] == 'user')? true : false;
+    }
+
+    function getUserCode() {
+        temp = window.location.pathname.split('/')
+        return temp[temp.length - 1]
+    }
+
     function setRoom() {
         $.ajax({
             dataType: "json",
@@ -63,7 +182,7 @@
             $('#room').parent().hide();
         }
     }
-    
+
     function register() {
         var json = {};
         json.email = $('#email').val();
@@ -110,10 +229,10 @@
     <div class="container">
 
         <br>
-        <h4>Register</h4>
+        <h4 id="header"></h4>
         <br>
 
-        <div>
+        <div id="user">
             <div>
                 Email <input id="email" type="text" class="form-control" placeholder="Email" name="email" value="{{request.form.email}}"><br>
             </div>
@@ -135,7 +254,7 @@
                 Phone number <input id="phone" type="text" class="form-control" placeholder="Phone" name="phone" value="{{request.form.room}}"><br>
             </div>
 
-            <input class="btn btn-default" type="submit" value="Register" onclick="register()">
+            <!-- <input class="btn btn-default" type="submit" value="Register" onclick="register()"> -->
         </div>
     </div>
 

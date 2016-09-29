@@ -1,0 +1,211 @@
+{% extends "views/header.html" %}
+
+{% block body %}
+
+<head>
+	<script src="{{ url_for('static', filename='dist/js/bootstrap-switch.js') }}"></script>
+	<link href="{{ url_for('static', filename='dist/css/bootstrap-switch.css') }}" rel="stylesheet">
+
+	<script type="text/javascript">
+		$(function () {
+			getFloor('B');
+			$("#manageCheck").bootstrapSwitch({state: false, onText: "Manager", offText: "user"});
+			$("#manageCheck").prop('checked', false);
+		});
+
+		function changeMode() {
+			if(!$("#manageCheck").is(':checked')) {
+				if(!confirm("설정 내용을 저장하시겠습니까?")) {
+					return;
+				}
+
+				var floor = $('#floorContent').children('div .active').find('div .col-lg-4').attr('id');
+				var json = [];
+				$('#floorContent').children('div .active').find('div .col-lg-4').each(function () {
+					var data = {};
+					data.room = $(this).attr('id');
+					data.is_show = getCheck($(this).find('button[name="showChk"]'));
+
+					json.push(data);
+				});
+
+				json = JSON.stringify({'floor': json});
+
+				alert(json);
+
+				$.ajax({
+					dataType: "json",
+					contentType: "application/json",
+					url: '/info/floor/' + floor,
+					type: 'POST',
+					data: json,
+					success: function (data) {
+						if (data.status == true) {
+							alert("Success to change room info");
+						} else {
+							alert(data.error.message);
+						}
+					},
+					fail: function () {
+						alert('error');
+					}
+				});
+			}
+
+			getFloor($('#floorTab').find('.active').attr('name'));
+		}
+
+		function getFloor(floor) {
+			$.ajax({
+				dataType: "json",
+				contentType: "application/json",
+				url: '/info/floor/' + floor,
+				type: "GET",
+				success: function (data) {
+					if (data.status == true) {
+						data = data.data;
+
+						$('#floorTab').find('li').removeClass('active');
+						$('#floorTab').find('li[name="' + floor + '"]').addClass('active');
+
+						$('#floorContent').find('div').removeClass('active');
+						$('#' + floor + 'F').addClass('active');
+
+						$('#' + floor + 'F').find('div.row').children().remove();
+
+						for (var i = 0; i < data.length; i++) {
+							if (!$("#manageCheck").is(':checked') && !data[i].is_show)
+								continue;
+
+							var room = '';
+							room += '<div id="'+ data[i].room +'" class="col-lg-4" onclick="detailRoom(this)">';
+							room += '	<div class="panel panel-info">';
+							room += '		<div class="panel-heading">';
+							room += ($("#manageCheck").is(':checked')) ? getCheckButton(data[i].is_show) : '';
+							room += data[i].room;
+							room += '		</div>';
+							room += '		<div class="panel-body">';
+							room += data[i].title;
+							room += '		</div>';
+							room += '		<div class="panel-footer">';
+							room += data[i].comment;
+							room += '		</div>';
+							room += '	</div>';
+							room += '</div>';
+
+							$('#' + floor + 'F').find('div.row').append(room);
+						}
+					} else {
+						alert(data.error.message);
+					}
+				},
+				fail: function (json) {
+					alert('error');
+				}
+			});
+		}
+
+		function detailRoom(room) {
+			location.href = "/wp/info/edit?room=" + $(room).attr('id');
+		}
+
+		function getCheckButton(boolean) {
+			if (boolean)
+				return '<div><button name="showChk" type="button" class="btn btn-info btn-circle" onclick="setToggle(this)"><i class="fa fa-check"></i></button></div>'
+			else
+				return '<div><button name="showChk" type="button" class="btn btn-default btn-circle" onclick="setToggle(this)"><i class="fa fa-check"></i></button></div>';
+		}
+
+		function getCheck(eliment) {
+			if($(eliment).hasClass('btn-info')) {
+				return true;
+			} else {
+				return false
+			}
+		}
+
+		function setToggle(btn) {
+			event.stopPropagation();		// kill the bubbling on checkbox click event
+
+			if ($(btn).hasClass("btn-info")) {
+				$(btn).removeClass("btn-info").addClass("btn-default");
+			} else {
+				$(btn).removeClass("btn-default").addClass("btn-info");
+			}
+		}
+	</script>
+</head>
+
+<!--body xmlns="http://www.w3.org/1999/html"-->
+<div class="container">
+
+	<div class="page-header">
+		<h1>{{title}}</h1>
+	</div>
+
+	{% if session.logged_in %}
+	<div>
+		<div style="float: right;">
+			<input id="manageCheck" type="checkbox" checked data-size="mini" onchange="changeMode()">
+		</div>
+	</div>
+	{% endif %}
+
+	<ul id="floorTab" class="nav nav-tabs">
+		<li name="B" class="active"><a href="#BF" data-toggle="tab" onclick="getFloor('B')"> BF </a>
+		</li>
+		<li name="1"><a href="#1F" data-toggle="tab" onclick="getFloor('1')"> 1F </a>
+		</li>
+		<li name="2"><a href="#2F" data-toggle="tab" onclick="getFloor('2')"> 2F </a>
+		</li>
+		<li name="3"><a href="#3F" data-toggle="tab" onclick="getFloor('3')"> 3F </a>
+		</li>
+		<li name="4"><a href="#4F" data-toggle="tab" onclick="getFloor('4')"> 4F </a>
+		</li>
+		<li name="5"><a href="#5F" data-toggle="tab" onclick="getFloor('5')"> 5F </a>
+		</li>
+	</ul>
+
+	<div id="floorContent" class="tab-content">
+		<div class="tab-pane fade in active" id="BF">
+			<div class="row">
+				<!--
+				<div class="col-lg-4">
+					<div class="panel panel-info">
+						<div class="panel-heading">
+							B01
+						</div>
+						<div class="panel-body">
+							image
+						</div>
+						<div class="panel-footer">
+							Panel Footer
+						</div>
+					</div>
+				</div>
+				-->
+			</div>
+		</div>
+		<div class="tab-pane fade in active" id="1F">
+			<div class="row">
+			</div>
+		</div>
+		<div class="tab-pane fade in active" id="2F">
+			<div class="row">
+			</div>
+		</div>
+		<div class="tab-pane fade in active" id="3F">
+			<div class="row">
+			</div>
+		</div>
+		<div class="tab-pane fade in active" id="4F">
+			<div class="row">
+			</div>
+		</div>
+		<div class="tab-pane fade in active" id="5F">
+			<div class="row">
+			</div>
+		</div>
+	</div>
+	<!--/body-->
+	{% endblock %}

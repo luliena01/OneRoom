@@ -3,7 +3,8 @@
 {% block body %}
 
 <script type="text/javascript" src="{{ url_for('static', filename='editor/js/HuskyEZCreator.js') }}" charset="utf-8"></script>
-<script type="text/javascript" src="{{ url_for('static', filename='editor/photo_uploader/js/HuskyEZCreator.js') }}" charset="utf-8"></script>
+<!--<script type="text/javascript" src="{{ url_for('static', filename='editor/photo_uploader/js/HuskyEZCreator.js') }}" charset="utf-8"></script>-->
+<script type="text/javascript" src="{{ url_for('static', filename='editor/js/jindo2.all.js') }}" charset="utf-8"></script>
 <!-- base -->
 <script type="text/javascript" src="{{ url_for('static', filename='js/base.js') }}"></script>
 
@@ -114,7 +115,7 @@ var id;
                 </div>
 
                 <button class="btn btn-outline btn-primary" onclick="javascript:submitContents()">Save</button>
-                <button type="cancel" class="btn btn-outline btn-default"><a href="/wp/notice/list">Cancel</a></button>
+                <button type="cancel" class="btn btn-outline btn-default"><a href=javascript:window.history.back();>Cancel</a></button>
             </div>
 
         <!--</form>-->

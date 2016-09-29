@@ -33,6 +33,7 @@
 
     <!-- Custom Fonts -->
     <link href="{{ url_for('static', filename='bower_components/font-awesome/css/font-awesome.min.css') }}" rel="stylesheet" type="text/css">
+
 </head>
 
 <header>
@@ -56,16 +57,19 @@
                         <a href="/wp/notice/list">Notice</a>
                     </li>
                     <li>
-                        <a href="/wp/shop/list">Rental Rooms</a>
+                        <a href="/wp/info/list">Rental Rooms</a>
                     </li>
                     <li>
-                        <a href="#">Contact</a>
+                        <a href="/wp/bill">Bills</a>
                     </li>
                     {% if session.logged_in %}
                     <li>
                         <!--a href="/logout/"><span class="glyphicon glyphicon-log-in"></span> Logout</a-->
                         <a href="/auth/logout"><span class="glyphicon glyphicon-log-in"></span> Logout </a>
                     </li>
+					<li>
+						<a href="/wp/auth/user/{{session.code}}"><span class="glyphicon glyphicon-log-in"></span> My Account </a>
+					</li>
                     {% else %}
                     <li>
 						<!-- put right side -->
@@ -84,7 +88,7 @@
 						<!--/div-->
                     </li>
                     {% endif %}
-					{% if session.logged_in %}
+					{% if session.admin %}
 					<li>
 						<a href="/wp/auth/user/list"><span class="glyphicon glyphicon-log-in"></span> User list </a>
 					</li>

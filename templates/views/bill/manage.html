@@ -1,0 +1,223 @@
+{% extends "views/header.html" %}
+
+{% block body %}
+
+<script type="text/javascript">
+	$(function () {
+		init();
+		setRoom();
+	});
+
+	function isEmpty(element) {
+		if (element.val().length == 0) {
+			alert("Please, Input data.");
+			element.focus();
+			return true;
+		}
+		return false;
+	}
+
+	function findEmpty() {
+		var empty = false;
+
+		$('#bill').find('tr').each(function () {
+			if (isEmpty($(this).find('td[name="elec_usage"] input'))) {
+				empty = true;
+				return false;
+			}
+			if (isEmpty($(this).find('td[name="elec_amount"] input'))) {
+				empty = true;
+				return false;
+			}
+			if (isEmpty($(this).find('td[name="gas_usage"] input'))) {
+				empty = true;
+				return false;
+			}
+			if (isEmpty($(this).find('td[name="gas_amount"] input'))) {
+				empty = true;
+				return false;
+			}
+		});
+		return empty;
+	}
+
+	function update() {
+		if (findEmpty())
+			return;
+
+		var json = [];
+		$('#bill').find('tr').each(function () {
+			var data = {};
+			data.room = $(this).find('td[name=room]').text();
+			data.description = $(this).find('td[name=desc]').val();
+			data.electric = {};
+			data.electric.usage = $(this).find('td[name="elec_usage"] input').val();
+			data.electric.amount = $(this).find('td[name="elec_amount"] input').val();
+			data.gas = {};
+			data.gas.usage = $(this).find('td[name="gas_usage"] input').val();
+			data.gas.amount = $(this).find('td[name="gas_amount"] input').val();
+
+			json.push(data);
+		});
+
+		json = JSON.stringify({'bill': json});
+
+		alert(json);
+
+		$.ajax({
+			dataType: "json",
+			contentType: "application/json",
+			url: '/bill/month/' + $('#year').val() + '/' + $('#month').val(),
+			type: 'POST',
+			data: json,
+			success: function (data) {
+				if (data.status == true) {
+					alert("Success to register the bill");
+
+					window.location = "/wp/main";
+				} else {
+					alert(data.error.message);
+				}
+			},
+			fail: function () {
+				alert('error');
+			}
+		});
+	}
+
+	function getBill() {
+		var url = '/bill/month';
+		if (year != null && month != null)
+			url += "/" + $('#year').val() + "/" + $('#month').val();
+
+		$.ajax({
+			dataType: "json",
+			contentType: "application/json",
+			url: url,
+			type: 'GET',
+			success: function (data) {
+				if (data.status == true) {
+					data = data.data;
+
+					$('#monthlyBill').find('tr').remove();
+					var bill = [];
+					if(data.length == 0) {
+						$('#bill').find('tr').each(function (index, room) {
+							$(room).find('td[name="elec_usage"] input').val(0);
+							$(room).find('td[name="elec_amount"] input').val(0);
+							$(room).find('td[name="gas_usage"] input').val(0);
+							$(room).find('td[name="gas_amount"] input').val(0);
+							$(room).find('td[name="desc"] input').val();
+						})
+					}
+
+					for (var i = 0; i < data.length; i++) {
+						var room = $('#' + data[i].room);
+
+						room.find('td[name="elec_usage"] input').val(data[i].electric.usage);
+						room.find('td[name="elec_amount"] input').val(data[i].electric.amount);
+						room.find('td[name="gas_usage"] input').val(data[i].gas.usage);
+						room.find('td[name="gas_amount"] input').val(data[i].gas.amount);
+						room.find('td[name="desc"] input').val(data[i].description);
+					}
+				} else {
+					alert(data.error.message);
+				}
+			},
+			fail: function () {
+				alert('error');
+			}
+		});
+	}
+
+	function row(room) {
+		var row = '';
+		row += '<tr id="' + room + '">';
+		row += '	<td name="room" style="text-align:center;">' + room + '</td>';
+		row += '	<td name="elec_usage"><input class="form-control" value="0"></td>';
+		row += '	<td name="elec_amount"><input class="form-control" value="0"></td>';
+		row += '	<td name="gas_usage"><input class="form-control" value="0"></td>';
+		row += '	<td name="gas_amount"><input class="form-control" value="0"></td>';
+		row += '	<td name="desc"><input class="form-control"></td>';
+		row += '</tr>';
+
+		return row;
+	}
+
+	function setRoom() {
+		$.ajax({
+			dataType: "json",
+			contentType: "application/json",
+			url: '/auth/room',
+			type: 'GET',
+			success: function (data) {
+				if (data.status == true) {
+					data = data.data;
+					for (var i = 0; i < data.length; i++) {
+						$('#bill').append(row(data[i].room));
+					}
+				} else {
+					alert(data.error.message);
+				}
+			},
+			fail: function () {
+				alert('error');
+			}
+		});
+	}
+
+	function init() {
+		for (var i = 2015; i < 2030; i++) {
+			$('#year').append('<option>' + i + '</option>');
+		}
+		for (var i = 1; i < 13; i++) {
+			$('#month').append('<option>' + i + '</option>');
+		}
+	}
+</script>
+
+<div class="container">
+
+	<div class="page-header">
+		<h1>세금</h1>
+	</div>
+
+	<div class="col-lg-4">
+		<div class="form-group">
+			<label>Year</label>
+			<select id="year" class="form-control">
+			</select>
+			<label>Month</label>
+			<select id="month" class="form-control">
+			</select>
+			<button type="button" class="btn btn-primary btn-sm" onclick="getBill()">bill</button>
+		</div>
+
+		<div class="table-responsive">
+			<table class="table table-bordered table-hover table-striped">
+				<thead>
+				<tr>
+					<th rowspan="2" style="text-align:center;" width="10%">호수</th>
+					<th colspan="2" style="text-align:center;">전기</th>
+					<th colspan="2" style="text-align:center;">가스</th>
+					<th rowspan="2" style="text-align:center;">비고</th>
+				</tr>
+				<tr>
+					<th style="text-align:center;">사용량</th>
+					<th style="text-align:center;">요금</th>
+					<th style="text-align:center;">사용량</th>
+					<th style="text-align:center;">요금</th>
+				</tr>
+				</thead>
+				<tbody id="bill">
+				</tbody>
+			</table>
+		</div>
+		<!-- /.table-responsive -->
+
+		<button type="button" class="btn btn-primary btn-lg btn-block" onclick="update()">Update</button>
+	</div>
+	<!-- /.col-lg-4 (nested) -->
+</div>
+
+{% endblock %}

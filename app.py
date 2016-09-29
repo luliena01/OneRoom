@@ -32,6 +32,10 @@ from boards.notice import notice, notice_wp
 app.register_blueprint(notice)
 app.register_blueprint(notice_wp)
 
+from boards.info import info, info_wp
+app.register_blueprint(info)
+app.register_blueprint(info_wp)
+
 from bill import  bill, bill_wp
 app.register_blueprint(bill)
 app.register_blueprint(bill_wp)
