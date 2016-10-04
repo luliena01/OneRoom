@@ -93,7 +93,7 @@ class User(Resource):
 				bill.append({'date': date, 'electric': {'usage': electric_usage, 'amount': electric_amount}, 'gas': {'usage': gas_usage, 'amount': gas_amount},
 							 'description': description})
 
-				return Response.ok(bill)
+			return Response.ok(bill)
 		except Exception as e:
 			current_app.logger.error(str(e))
 			return Response.error(error_code.Global.UNKOWN)

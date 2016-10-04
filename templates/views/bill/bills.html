@@ -105,6 +105,11 @@
 
 						$('#userBill').append(row);
 					}
+
+					if(bill.length == 0) {
+						return;
+					}
+
 					Morris.Bar({
 						element: 'morris-bar-chart',
 						data: bill,
